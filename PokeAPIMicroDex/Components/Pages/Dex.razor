@@ -1,0 +1,61 @@
+﻿@page "/dex"
+@using PokeAPIAgent
+
+@inject Connection PokemonInfo
+
+<MudContainer Class="pa-4">
+    <MudText Typo="Typo.h4" GutterBottom="true">Pokedex</MudText>
+
+    @if (PokemonInfo.TotalCount > 0)
+    {
+        <MudProgressLinear Color="Color.Primary" Value="@((_loadedCount / (double)PokemonInfo.TotalCount) * 100)"/>
+    }
+    else
+    {
+        <MudProgressLinear Color="Color.Primary" Indeterminate="true"/>
+    }
+    <p>@_loadedCount / @PokemonInfo.TotalCount loaded</p>
+
+    <MudGrid>
+        @foreach (var pokemon in PokemonInfo.PokemonList)
+        {
+            <MudItem xs="12" sm="6" md="4" lg="3">
+                <MudCard Class="mx-auto" Style="max-width: 250px; height: 320px">
+                    <MudCardMedia Image="@pokemon.ImageUrl" Style="max-height: 310px"/>
+                    <MudCardContent>
+                        <MudText Typo="Typo.h6">@pokemon.Name</MudText>
+                        <MudText Typo="Typo.body2">Type: @pokemon.Type</MudText>
+                        <MudText Typo="Typo.body2">ID: @pokemon.Id</MudText>
+                    </MudCardContent>
+                </MudCard>
+            </MudItem>
+        }
+    </MudGrid>
+</MudContainer>
+
+@code {
+    private int _loadedCount;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _loadedCount = PokemonInfo.PokemonList.Count;
+        await LoadPokemonAsync();
+    }
+
+    private async Task LoadPokemonAsync()
+    {
+        await foreach (var pokemon in PokemonInfo.GetPokemonStreamAsync(_loadedCount))
+        {
+            if (PokemonInfo.PokemonList.All(p => p.Id != pokemon.Id))
+            {
+                PokemonInfo.PokemonList.Add(pokemon);
+            }
+
+            _loadedCount = PokemonInfo.PokemonList.Count;
+
+            StateHasChanged();
+        }
+    }
+}
+
+

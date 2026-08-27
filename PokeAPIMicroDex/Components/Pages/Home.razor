@@ -1,0 +1,23 @@
+﻿@page "/"
+
+<div style="min-height: 100vh; padding: 40px; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; justify-content: start; font-family: 'Comic Sans MS', cursive, sans-serif;">
+
+    <MudText Typo="Typo.h3" GutterBottom="true" Style="color:papayawhip;; animation: pulse 2s infinite;">
+        Welcome to the PokeAPI Pokédex!
+    </MudText>
+
+    <MudText Class="mb-8" Style="font-size: 1.2em; color:greenyellow; text-shadow: 1px 1px 4px #fff;">
+        Discover and have fun!
+    </MudText>
+
+    <div style="margin-top: 50px; animation: bounce 2s infinite;">
+        <a href="/dex" style="display: inline-block; cursor: pointer; transition: transform 0.2s;">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Pok%C3%A9_Ball_icon.svg" alt="Pokéball" style="width: 200px; height: 200px; border-radius: 50%; box-shadow: 0 0 20px rgba(0,0,0,0.3); transition: transform 0.2s;"
+                 onmouseover="this.style.transform='scale(1.15) rotate(10deg)'" onmouseout="this.style.transform='scale(1) rotate(0deg)'"/>
+        </a>
+    </div>
+    
+    <MudText Class="mb-10" Style="font-size: 0.7em; color:greenyellow; text-shadow: 1px 1px 4px #fff;">
+        Click me!
+    </MudText>
+</div>

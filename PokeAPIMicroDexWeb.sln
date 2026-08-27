@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PokeAPIMicroDex", "PokeAPIMicroDex\PokeAPIMicroDex.csproj", "{099C9237-935B-4EBB-A074-9CC6658FFEB2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PokeAPIAgent", "PokeAPIAgent\PokeAPIAgent.csproj", "{E206C991-ED56-46BD-8F96-EC5B35B26A34}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DNBigHelpfulLib", "..\DNBigHelpfulLib\DNBigHelpfulLib\DNBigHelpfulLib.csproj", "{1AF84E3F-8A49-41FA-A1DD-7510E4A4ED38}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{099C9237-935B-4EBB-A074-9CC6658FFEB2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{099C9237-935B-4EBB-A074-9CC6658FFEB2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{099C9237-935B-4EBB-A074-9CC6658FFEB2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{099C9237-935B-4EBB-A074-9CC6658FFEB2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E206C991-ED56-46BD-8F96-EC5B35B26A34}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E206C991-ED56-46BD-8F96-EC5B35B26A34}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E206C991-ED56-46BD-8F96-EC5B35B26A34}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E206C991-ED56-46BD-8F96-EC5B35B26A34}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1AF84E3F-8A49-41FA-A1DD-7510E4A4ED38}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1AF84E3F-8A49-41FA-A1DD-7510E4A4ED38}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1AF84E3F-8A49-41FA-A1DD-7510E4A4ED38}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1AF84E3F-8A49-41FA-A1DD-7510E4A4ED38}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
