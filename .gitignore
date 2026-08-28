@@ -6,3 +6,5 @@ PokeAPIMicroDex/obj
 
 Poke.Redis/bin
 Poke.Redis/obj
+
+.idea/.idea.PokeAPIMicroDexWeb/Docker/docker-compose.generated.override.yml
