@@ -1,5 +1,6 @@
 using DNBigHelpfulLib;
 using MudBlazor.Services;
+using Poke.Redis;
 using PokeAPIAgent;
 using PokeAPIMicroDex.Components;
 using PokeApiNet;
@@ -24,6 +25,15 @@ builder.Services.AddSingleton<Connection>(sp =>
     return new Connection(client, logger);
 });
 
+builder.Services.AddSingleton<RedisAgent>();
+
+builder.Services.AddSingleton<PokemonCardRedisRepository>(pcr => 
+{
+    var agent = pcr.GetRequiredService<RedisAgent>();
+    var logger = pcr.GetRequiredService<ILogger>();
+    return new PokemonCardRedisRepository(agent, logger);
+});
+
 var app = builder.Build();
 
 if (!app.Environment.IsDevelopment())
@@ -42,4 +52,5 @@ app.MapStaticAssets();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
+app.Urls.Add("http://0.0.0.0:5279");
 app.Run();

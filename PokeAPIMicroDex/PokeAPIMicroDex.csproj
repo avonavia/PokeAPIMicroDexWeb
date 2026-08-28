@@ -5,6 +5,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <BlazorDisableThrowNavigationException>true</BlazorDisableThrowNavigationException>
+    <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
   </PropertyGroup>
 
 
@@ -18,5 +19,12 @@
   <ItemGroup>
     <ProjectReference Include="..\..\DNBigHelpfulLib\DNBigHelpfulLib\DNBigHelpfulLib.csproj" />
     <ProjectReference Include="..\PokeAPIAgent\PokeAPIAgent.csproj" />
+  </ItemGroup>
+
+
+  <ItemGroup>
+    <Content Include="..\.dockerignore">
+      <Link>.dockerignore</Link>
+    </Content>
   </ItemGroup>
 </Project>

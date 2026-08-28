@@ -3,3 +3,6 @@ PokeAPIAgent/bin
 
 PokeAPIMicroDex/bin
 PokeAPIMicroDex/obj
+
+Poke.Redis/bin
+Poke.Redis/obj

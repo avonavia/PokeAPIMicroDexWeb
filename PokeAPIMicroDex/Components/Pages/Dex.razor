@@ -2,6 +2,7 @@
 @using PokeAPIAgent
 
 @inject Connection PokemonInfo
+@inject PokemonCardRedisRepository RedisRepository
 
 <MudContainer Class="pa-4">
     <MudText Typo="Typo.h4" GutterBottom="true">Pokedex</MudText>
@@ -44,11 +45,17 @@
 
     private async Task LoadPokemonAsync()
     {
+        if (!PokemonInfo.PokemonList.Any())
+            PokemonInfo.PokemonList = await RedisRepository.GetAllPokemonCards();
+        
+        _loadedCount = PokemonInfo.PokemonList.Count;
+        
         await foreach (var pokemon in PokemonInfo.GetPokemonStreamAsync(_loadedCount))
         {
             if (PokemonInfo.PokemonList.All(p => p.Id != pokemon.Id))
             {
                 PokemonInfo.PokemonList.Add(pokemon);
+                await RedisRepository.StorePokemonCardAsync(pokemon);
             }
 
             _loadedCount = PokemonInfo.PokemonList.Count;

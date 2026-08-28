@@ -10,8 +10,7 @@ public class Connection
     private readonly PokeApiClient _pokeApiClient;
     private readonly ILogger _logger;
     private readonly Random _rand = new();
-    public readonly List<PokemonCard> PokemonList = new();
-    public bool IsLoading = false;
+    public List<PokemonCard> PokemonList = new();
     public int TotalCount = 151;
 
     public Connection(PokeApiClient pokeApiClient, ILogger logger)
