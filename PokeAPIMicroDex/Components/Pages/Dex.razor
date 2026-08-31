@@ -4,9 +4,44 @@
 @inject Connection PokemonInfo
 @inject PokemonCardRedisRepository RedisRepository
 
-<MudContainer Class="pa-4">
-    <MudText Typo="Typo.h4" GutterBottom="true">Pokedex</MudText>
+<style>
+    .flip-card {
+        perspective: 1000px;
+        display: inline-block;
+    }
 
+    .flip-card-inner {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        text-align: center;
+        transition: transform 0.8s;
+        transform-style: preserve-3d;
+    }
+
+    .flip-card.flipped .flip-card-inner {
+        transform: rotateY(180deg);
+    }
+
+    .flip-card-front, .flip-card-back {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        backface-visibility: hidden;
+        top: 0;
+        left: 0;
+    }
+
+    .flip-card-front {
+        z-index: 2;
+    }
+
+    .flip-card-back {
+        transform: rotateY(180deg);
+    }
+</style>
+
+<MudContainer Class="pa-4">
     @if (PokemonInfo.TotalCount > 0)
     {
         <MudProgressLinear Color="Color.Primary" Value="@((_loadedCount / (double)PokemonInfo.TotalCount) * 100)"/>
@@ -16,19 +51,36 @@
         <MudProgressLinear Color="Color.Primary" Indeterminate="true"/>
     }
     <p>@_loadedCount / @PokemonInfo.TotalCount loaded</p>
-
+    
     <MudGrid>
         @foreach (var pokemon in PokemonInfo.PokemonList)
         {
             <MudItem xs="12" sm="6" md="4" lg="3">
-                <MudCard Class="mx-auto" Style="max-width: 250px; height: 320px">
-                    <MudCardMedia Image="@pokemon.ImageUrl" Style="max-height: 310px"/>
-                    <MudCardContent>
-                        <MudText Typo="Typo.h6">@pokemon.Name</MudText>
-                        <MudText Typo="Typo.body2">Type: @pokemon.Type</MudText>
-                        <MudText Typo="Typo.body2">ID: @pokemon.Id</MudText>
-                    </MudCardContent>
-                </MudCard>
+                <div @onmouseenter="@(() => pokemon.IsHovered = true)" @onmouseleave="@(() => pokemon.IsHovered = false)">
+                    <div class="flip-card @(pokemon.IsHovered ? "flipped" : "")" style="width: 250px; height: 320px;">
+                        <div class="flip-card-inner">
+                            <div class="flip-card-front">
+                                <MudCard Class="mx-auto" Style="max-width: 250px; height: 320px">
+                                    <MudCardMedia Image="@pokemon.ImageUrl" Style="max-height: 310px"/>
+                                    <MudCardContent>
+                                        <MudText Typo="Typo.h6">@pokemon.Name</MudText>
+                                        <MudText Typo="Typo.body2">Type: @pokemon.Type</MudText>
+                                        <MudText Typo="Typo.body2">ID: @pokemon.Id</MudText>
+                                    </MudCardContent>
+                                </MudCard>
+                            </div>
+                            <div class="flip-card-back">
+                                <MudCard Class="mx-auto" Style="max-width: 250px; height: 320px">
+                                    <MudCardMedia Image="@pokemon.ImageUrlBack" Style="max-height: 310px"/>
+                                    <MudCardContent>
+                                        <MudText Typo="Typo.h6">@pokemon.Name</MudText>
+                                        <MudText Typo="Typo.body2">Weight: @pokemon.Weight</MudText>
+                                    </MudCardContent>
+                                </MudCard>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </MudItem>
         }
     </MudGrid>

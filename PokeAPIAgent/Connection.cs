@@ -61,7 +61,9 @@ public class Connection
                     Id = p.Id,
                     Name = await Capitalize(p.Name),
                     Type = sb.ToString(),
-                    ImageUrl = p.Sprites.FrontDefault
+                    ImageUrl = p.Sprites.FrontDefault,
+                    Weight = p.Weight,
+                    ImageUrlBack = p.Sprites.BackDefault
                 };
             }
         }

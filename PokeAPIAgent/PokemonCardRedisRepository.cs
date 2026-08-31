@@ -21,18 +21,22 @@ public class PokemonCardRedisRepository
         var json = JsonSerializer.Serialize(card);
         var db = _agent.GetDatabase();
         if (db != null)
+        {
+            _logger.Information($"Adding [pokemon:{card.Id}] to Redis");
             await db.StringSetAsync($"pokemon:{card.Id}", json);
+        }
         else
         {
             _logger.Warning("Redis is not available. Skipping adding data");
         }
     }
 
-    public async Task<PokemonCard?> GetPokemonCardAsync(int id)
+    private async Task<PokemonCard?> GetPokemonCardAsync(int id)
     {
         var db = _agent.GetDatabase();
         if (db != null)
         {
+            _logger.Information($"Trying to get [pokemon:{id}] from Redis");
             var json = await db.StringGetAsync($"pokemon:{id}");
             if (json.IsNullOrEmpty)
                 return null;
