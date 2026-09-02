@@ -27,11 +27,11 @@ builder.Services.AddSingleton<Connection>(sp =>
 
 builder.Services.AddSingleton<RedisAgent>();
 
-builder.Services.AddSingleton<PokemonCardRedisRepository>(pcr => 
+builder.Services.AddSingleton<PokemonRedisRepository>(pcr => 
 {
     var agent = pcr.GetRequiredService<RedisAgent>();
     var logger = pcr.GetRequiredService<ILogger>();
-    return new PokemonCardRedisRepository(agent, logger);
+    return new PokemonRedisRepository(agent, logger);
 });
 
 var app = builder.Build();

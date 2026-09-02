@@ -9,3 +9,6 @@
 
 #### Dex
 ![Dex2](https://github.com/avonavia/PokeAPIMicroDexWeb/blob/master/Screenshots/dex.png)
+
+#### Abilities
+![Dex3](https://github.com/avonavia/PokeAPIMicroDexWeb/blob/master/Screenshots/ab.png)

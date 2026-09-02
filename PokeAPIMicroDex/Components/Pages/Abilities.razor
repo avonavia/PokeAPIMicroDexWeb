@@ -1,0 +1,65 @@
+﻿@page "/ab"
+@using PokeAPIAgent
+
+@inject Connection PokemonInfo
+@inject PokemonRedisRepository RedisRepository
+
+<MudContainer Class="pa-4">
+    @if (PokemonInfo.TotalCountAb > 0)
+    {
+        <MudProgressLinear Color="Color.Primary" Value="@((_loadedCount / (double)PokemonInfo.TotalCountAb) * 100)"/>
+    }
+    else
+    {
+        <MudProgressLinear Color="Color.Primary" Indeterminate="true"/>
+    }
+    <p>@_loadedCount / @PokemonInfo.TotalCountAb loaded</p>
+
+    <MudGrid>
+        @foreach (var ab in PokemonInfo.AbilityList)
+        {
+            <MudItem xs="12" sm="6" md="4" lg="3">
+                <MudCard Class="mx-auto" Style="max-width: 300px; height: 200px">
+                    <MudCardContent>
+                        <MudText Typo="Typo.h6">@ab.Name</MudText>
+                        <MudText Typo="Typo.body2">@ab.Effect</MudText>
+                    </MudCardContent>
+                </MudCard>
+            </MudItem>
+        }
+    </MudGrid>
+</MudContainer>
+
+@code {
+    private int _loadedCount;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _loadedCount = PokemonInfo.AbilityList.Count;
+        await LoadAbilitiesAsync();
+    }
+
+    private async Task LoadAbilitiesAsync()
+    {
+        if (!PokemonInfo.AbilityList.Any())
+            PokemonInfo.AbilityList = await RedisRepository.GetAllAbilityCards();
+
+        _loadedCount = PokemonInfo.AbilityList.Count;
+
+        await foreach (var ab in PokemonInfo.GetAbilityStreamAsync(_loadedCount))
+        {
+            if (PokemonInfo.AbilityList.All(p => p.Id != ab.Id))
+            {
+                PokemonInfo.AbilityList.Add(ab);
+                await RedisRepository.StoreAbilityCardAsync(ab);
+            }
+
+            _loadedCount = PokemonInfo.AbilityList.Count;
+
+            StateHasChanged();
+        }
+    }
+
+}
+
+
