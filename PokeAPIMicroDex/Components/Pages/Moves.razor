@@ -1,0 +1,93 @@
+﻿@page "/moves"
+@using PokeAPIAgent
+
+@inject Connection PokemonInfo
+@inject PokemonRedisRepository RedisRepository
+
+<MudContainer Class="pa-4">
+    @if (PokemonInfo.TotalCountAb > 0)
+    {
+        <MudProgressLinear Color="Color.Primary" Value="@((_loadedCount / (double)PokemonInfo.TotalCountMove) * 100)"/>
+    }
+    else
+    {
+        <MudProgressLinear Color="Color.Primary" Indeterminate="true"/>
+    }
+    <p>@_loadedCount / @PokemonInfo.TotalCountMove loaded</p>
+
+    <MudGrid Justify="Justify.SpaceBetween">
+        @foreach (var m in PokemonInfo.MoveList)
+        {
+            <MudItem xs="3" Style="align-content: center">
+                <MudCard Class="mx-auto" Style="width: 280px; height: 350px; padding: 10px;">
+                    <MudCardContent>
+                        <MudGrid GutterSize="2">
+                            <MudItem xs="12">
+                                <MudText Typo="Typo.h6" Style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                    @m.Name
+                                </MudText>
+                            </MudItem>
+                        </MudGrid>
+                        <MudDivider Class="my-3"/>
+                        <MudGrid GutterSize="2">
+                            <MudItem xs="6">
+                                <MudText Typo="Typo.body2">@m.Element</MudText>
+                            </MudItem>
+                            <MudItem xs="6">
+                                <MudText Typo="Typo.body2">@m.DamageClass</MudText>
+                            </MudItem>
+                        </MudGrid>
+                        <MudDivider Class="my-3"/>
+                        <MudGrid GutterSize="2" Justify="Justify.SpaceBetween">
+                            <MudItem xs="4" Style="text-align:left;">
+                                <MudText Typo="Typo.body1">Power: @m.Power</MudText>
+                            </MudItem>
+                            <MudItem xs="4" Style="text-align:left;">
+                                <MudText Typo="Typo.body1">Acc: @m.Accuracy</MudText>
+                            </MudItem>
+                            <MudItem xs="4" Style="text-align:left;">
+                                <MudText Typo="Typo.body1">PP: @m.Pp</MudText>
+                            </MudItem>
+                        </MudGrid>
+                        <MudDivider Class="my-3"/>
+                        <MudText Typo="Typo.body1">@m.Effect</MudText>
+                    </MudCardContent>
+                </MudCard>
+            </MudItem>
+        }
+    </MudGrid>
+</MudContainer>
+
+@code {
+    private int _loadedCount;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _loadedCount = PokemonInfo.MoveList.Count;
+        await LoadMovesAsync();
+    }
+
+    private async Task LoadMovesAsync()
+    {
+        if (!PokemonInfo.MoveList.Any())
+            PokemonInfo.MoveList = await RedisRepository.GetAllMoveCards();
+
+        _loadedCount = PokemonInfo.MoveList.Count;
+
+        await foreach (var m in PokemonInfo.GetMoveStreamAsync(_loadedCount))
+        {
+            if (PokemonInfo.MoveList.All(mc => mc.Id != m.Id))
+            {
+                PokemonInfo.MoveList.Add(m);
+                await RedisRepository.StoreMoveCardAsync(m);
+            }
+
+            _loadedCount = PokemonInfo.MoveList.Count;
+
+            StateHasChanged();
+        }
+    }
+
+}
+
+

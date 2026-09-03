@@ -48,7 +48,7 @@
 
         await foreach (var ab in PokemonInfo.GetAbilityStreamAsync(_loadedCount))
         {
-            if (PokemonInfo.AbilityList.All(p => p.Id != ab.Id))
+            if (PokemonInfo.AbilityList.All(ac => ac.Id != ab.Id))
             {
                 PokemonInfo.AbilityList.Add(ab);
                 await RedisRepository.StoreAbilityCardAsync(ab);

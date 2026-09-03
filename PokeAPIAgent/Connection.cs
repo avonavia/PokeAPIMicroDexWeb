@@ -14,8 +14,10 @@ public class Connection
     private readonly Random _rand = new();
     public List<PokemonCard> PokemonList = new();
     public List<AbilityCard> AbilityList = new();
+    public List<MoveCard> MoveList = new();
     public readonly int TotalCount = 151;
     public readonly int TotalCountAb = 307;
+    public readonly int TotalCountMove = 165;
     private readonly AsyncRetryPolicy _retryPolicy;
 
     public Connection(PokeApiClient pokeApiClient, ILogger logger)
@@ -43,7 +45,7 @@ public class Connection
         {
             var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
             pokemon = await _pokeApiClient.GetResourceAsync<Pokemon>(number, cts.Token);
-            _logger.Information($"Got: [{pokemon.Name}]");
+            _logger.Information($"Got Pokemon: [{pokemon.Name}]");
         });
 
         return pokemon;
@@ -57,10 +59,24 @@ public class Connection
         {
             var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
             ab = await _pokeApiClient.GetResourceAsync<Ability>(id, cts.Token);
-            _logger.Information($"Got: [{ab.Name}]");
+            _logger.Information($"Got Ability: [{ab.Name}]");
         });
 
         return ab;
+    }
+    
+    private async Task<Move?> GetMoveById(int id)
+    {
+        Move? m = null;
+
+        await _retryPolicy.ExecuteAsync(async () =>
+        {
+            var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+            m = await _pokeApiClient.GetResourceAsync<Move>(id, cts.Token);
+            _logger.Information($"Got Move: [{m.Name}]");
+        });
+
+        return m;
     }
 
     public async IAsyncEnumerable<PokemonCard> GetPokemonStreamAsync(int starting)
@@ -112,7 +128,7 @@ public class Connection
 
         for (int i = starting; i <= TotalCountAb; i++)
         {
-            if (AbilityList.All(p => p.Id != i))
+            if (AbilityList.All(ab => ab.Id != i))
             {
                 var a = await GetAbilityById(i);
                 
@@ -122,6 +138,38 @@ public class Connection
                         Id = a.Id,
                         Name = await Capitalize(a.Name),
                         Effect = a.EffectEntries.FirstOrDefault(e => e.Language.Name == "en").ShortEffect
+                    };
+            }
+        }
+    }
+    
+    public async IAsyncEnumerable<MoveCard> GetMoveStreamAsync(int starting)
+    {
+        if (starting == 0)
+        {
+            starting = 1;
+        }
+
+        for (int i = starting; i <= TotalCountMove; i++)
+        {
+            if (MoveList.All(mc => mc.Id != i))
+            {
+                var m = await GetMoveById(i);
+                
+                if (m != null && m.EffectEntries.FirstOrDefault(e => e.Language.Name == "en") != null)
+                    yield return new MoveCard
+                    {
+                        Id = m.Id,
+                        Name = await Capitalize(m.Name),
+                        Accuracy = m.Accuracy ?? 0,
+                        EffectChance = m.EffectChance ?? 0,
+                        Pp =  m.Pp ?? 0,
+                        Priority = m.Priority,
+                        Power = m.Power ?? 0,
+                        DamageClass = await Capitalize(m.DamageClass.Name),
+                        Effect = m.EffectEntries.FirstOrDefault(e => e.Language.Name == "en").ShortEffect,
+                        Element = await Capitalize(m.Type.Name),
+                        PokemonNames = m.LearnedByPokemon.Select(p => p.Name).ToList()
                     };
             }
         }

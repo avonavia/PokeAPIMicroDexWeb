@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Poke.Redis")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+1dea09cf970658b31274e2312327563659eaf69d")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+e21f0fc760582f3bd150fe597f75ce3c9ff10e67")]
 [assembly: System.Reflection.AssemblyProductAttribute("Poke.Redis")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Poke.Redis")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

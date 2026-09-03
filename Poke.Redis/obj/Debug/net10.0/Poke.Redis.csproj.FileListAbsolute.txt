@@ -1,0 +1,13 @@
+/home/dragonyan/RiderProjects/PokeAPIMicroDexWeb/Poke.Redis/bin/Debug/net10.0/Poke.Redis.deps.json
+/home/dragonyan/RiderProjects/PokeAPIMicroDexWeb/Poke.Redis/bin/Debug/net10.0/Poke.Redis.dll
+/home/dragonyan/RiderProjects/PokeAPIMicroDexWeb/Poke.Redis/bin/Debug/net10.0/Poke.Redis.pdb
+/home/dragonyan/RiderProjects/PokeAPIMicroDexWeb/Poke.Redis/obj/Debug/net10.0/Poke.Redis.csproj.AssemblyReference.cache
+/home/dragonyan/RiderProjects/PokeAPIMicroDexWeb/Poke.Redis/obj/Debug/net10.0/Poke.Redis.GeneratedMSBuildEditorConfig.editorconfig
+/home/dragonyan/RiderProjects/PokeAPIMicroDexWeb/Poke.Redis/obj/Debug/net10.0/Poke.Redis.AssemblyInfoInputs.cache
+/home/dragonyan/RiderProjects/PokeAPIMicroDexWeb/Poke.Redis/obj/Debug/net10.0/Poke.Redis.AssemblyInfo.cs
+/home/dragonyan/RiderProjects/PokeAPIMicroDexWeb/Poke.Redis/obj/Debug/net10.0/Poke.Redis.csproj.CoreCompileInputs.cache
+/home/dragonyan/RiderProjects/PokeAPIMicroDexWeb/Poke.Redis/obj/Debug/net10.0/Poke.Redis.sourcelink.json
+/home/dragonyan/RiderProjects/PokeAPIMicroDexWeb/Poke.Redis/obj/Debug/net10.0/Poke.Redis.dll
+/home/dragonyan/RiderProjects/PokeAPIMicroDexWeb/Poke.Redis/obj/Debug/net10.0/refint/Poke.Redis.dll
+/home/dragonyan/RiderProjects/PokeAPIMicroDexWeb/Poke.Redis/obj/Debug/net10.0/Poke.Redis.pdb
+/home/dragonyan/RiderProjects/PokeAPIMicroDexWeb/Poke.Redis/obj/Debug/net10.0/ref/Poke.Redis.dll

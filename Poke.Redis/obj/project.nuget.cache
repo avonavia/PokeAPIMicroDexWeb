@@ -1,0 +1,24 @@
+{
+  "version": 2,
+  "dgSpecHash": "vMxieUPlUbk=",
+  "success": true,
+  "projectFilePath": "/home/dragonyan/RiderProjects/PokeAPIMicroDexWeb/Poke.Redis/Poke.Redis.csproj",
+  "expectedPackageFiles": [
+    "/home/dragonyan/.nuget/packages/microsoft.extensions.dependencyinjection.abstractions/10.0.5/microsoft.extensions.dependencyinjection.abstractions.10.0.5.nupkg.sha512",
+    "/home/dragonyan/.nuget/packages/microsoft.extensions.logging.abstractions/10.0.5/microsoft.extensions.logging.abstractions.10.0.5.nupkg.sha512",
+    "/home/dragonyan/.nuget/packages/respite/3.1.31/respite.3.1.31.nupkg.sha512",
+    "/home/dragonyan/.nuget/packages/stackexchange.redis/3.1.31/stackexchange.redis.3.1.31.nupkg.sha512",
+    "/home/dragonyan/.nuget/packages/system.io.hashing/10.0.5/system.io.hashing.10.0.5.nupkg.sha512"
+  ],
+  "logs": [
+    {
+      "code": "Undefined",
+      "level": "Warning",
+      "message": "Ошибка чтения файла кэша /home/dragonyan/RiderProjects/PokeAPIMicroDexWeb/Poke.Redis/obj/project.nuget.cache: The input does not contain any JSON tokens. Expected the input to start with a valid JSON token, when isFinalBlock is true. Path: $ | LineNumber: 0 | BytePositionInLine: 0.",
+      "projectPath": "/home/dragonyan/RiderProjects/PokeAPIMicroDexWeb/Poke.Redis/Poke.Redis.csproj",
+      "warningLevel": 1,
+      "filePath": "/home/dragonyan/RiderProjects/PokeAPIMicroDexWeb/Poke.Redis/Poke.Redis.csproj",
+      "targetGraphs": []
+    }
+  ]
+}
