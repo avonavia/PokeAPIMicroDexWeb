@@ -8,21 +8,21 @@
 #### * Battle Mode (WIP)
 
 #### Menu
-![Dex1](https://github.com/avonavia/PokeAPIMicroDexWeb/blob/master/Screenshots/menu.png)
+![Dex1](https://github.com/avonavia/PokeAPIMicroDexWeb/blob/master/Screenshots/menu-v2.png)
 
 ![Dex2](https://github.com/avonavia/PokeAPIMicroDexWeb/blob/master/Screenshots/menu2.png)
 
 #### Pokedex
 ##### See the info about different Pokemon
-![Dex3](https://github.com/avonavia/PokeAPIMicroDexWeb/blob/master/Screenshots/dex.png)
+![Dex3](https://github.com/avonavia/PokeAPIMicroDexWeb/blob/master/Screenshots/dex-v2.png)
 
 #### Abilities
 ##### Look at Pokemon Abilities
-![Dex4](https://github.com/avonavia/PokeAPIMicroDexWeb/blob/master/Screenshots/ab.png)
+![Dex4](https://github.com/avonavia/PokeAPIMicroDexWeb/blob/master/Screenshots/ab-v2.png)
 
 #### Moves
 ##### Read about different Moves
-![Dex5](https://github.com/avonavia/PokeAPIMicroDexWeb/blob/master/Screenshots/moves.png)
+![Dex5](https://github.com/avonavia/PokeAPIMicroDexWeb/blob/master/Screenshots/moves-v2.png)
 
 #### Battle Selector
 ##### Select Pokemon and Moves to battle with your friend!
