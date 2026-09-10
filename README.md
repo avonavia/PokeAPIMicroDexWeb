@@ -28,11 +28,11 @@
 ##### Select Pokemon and Moves to battle with your friend!
 ![Dex6](https://github.com/avonavia/PokeAPIMicroDexWeb/blob/master/Screenshots/bm.png)
 
-![Dex7](https://github.com/avonavia/PokeAPIMicroDexWeb/blob/master/Screenshots/bm2.png)
+![Dex7](https://github.com/avonavia/PokeAPIMicroDexWeb/blob/master/Screenshots/bm3.png)
 
 #### Battle Mode
 ##### Battle to see who is the very best Pokemon trainer!
-![Dex8](https://github.com/avonavia/PokeAPIMicroDexWeb/blob/master/Screenshots/battle.png)
+![Dex8](https://github.com/avonavia/PokeAPIMicroDexWeb/blob/master/Screenshots/battle2.png)
 
 #### Battle Logs
 ##### Battle logs are stored in a convenient page for you to see
