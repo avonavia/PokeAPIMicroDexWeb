@@ -1,4 +1,8 @@
 ﻿@page "/"
+@using PokeAPIAgent
+
+@inject Connection PokemonInfo
+@inject PokemonRedisRepository RedisRepository
 
 <div style="min-height: 100vh; padding: 40px; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; justify-content: start; font-family: 'Comic Sans MS', cursive, sans-serif;">
 
@@ -20,4 +24,89 @@
     <MudText Class="mb-10" Style="font-size: 0.7em; color:greenyellow; text-shadow: 1px 1px 4px #fff;">
         Click me!
     </MudText>
+    
+    <MudText Class="mb-8" Style="align-items: flex-end; font-size: 1.2em; color:greenyellow; text-shadow: 1px 1px 4px #fff;">
+        ...or use the Battle mode with your friend!
+    </MudText>
 </div>
+
+@code {
+    private int _loadedCount;
+    private int _loadedCountAb;
+    private int _loadedCountMove;
+
+
+    protected override Task OnInitializedAsync()
+    {
+        _loadedCount = PokemonInfo.PokemonList.Count;
+        _loadedCountAb = PokemonInfo.AbilityList.Count;
+        _loadedCountMove = PokemonInfo.MoveList.Count;
+        _ = LoadPokemonAsync();
+        _ = LoadAbilitiesAsync();
+        _ = LoadMovesAsync();
+        return Task.CompletedTask;
+    }
+
+    private async Task LoadPokemonAsync()
+    {
+        if (!PokemonInfo.PokemonList.Any())
+            PokemonInfo.PokemonList = await RedisRepository.GetAllPokemonCards();
+
+        _loadedCount = PokemonInfo.PokemonList.Count;
+
+        await foreach (var pokemon in PokemonInfo.GetPokemonStreamAsync(_loadedCount))
+        {
+            if (PokemonInfo.PokemonList.All(p => p.Id != pokemon.Id))
+            {
+                PokemonInfo.PokemonList.Add(pokemon);
+                await RedisRepository.StorePokemonCardAsync(pokemon);
+            }
+
+            _loadedCount = PokemonInfo.PokemonList.Count;
+
+            StateHasChanged();
+        }
+    }
+
+    private async Task LoadAbilitiesAsync()
+    {
+        if (!PokemonInfo.AbilityList.Any())
+            PokemonInfo.AbilityList = await RedisRepository.GetAllAbilityCards();
+
+        _loadedCountAb = PokemonInfo.AbilityList.Count;
+
+        await foreach (var ab in PokemonInfo.GetAbilityStreamAsync(_loadedCountAb))
+        {
+            if (PokemonInfo.AbilityList.All(ac => ac.Id != ab.Id))
+            {
+                PokemonInfo.AbilityList.Add(ab);
+                await RedisRepository.StoreAbilityCardAsync(ab);
+            }
+
+            _loadedCountAb = PokemonInfo.AbilityList.Count;
+
+            StateHasChanged();
+        }
+    }
+
+    private async Task LoadMovesAsync()
+    {
+        if (!PokemonInfo.MoveList.Any())
+            PokemonInfo.MoveList = await RedisRepository.GetAllMoveCards();
+
+        _loadedCountMove = PokemonInfo.MoveList.Count;
+
+        await foreach (var m in PokemonInfo.GetMoveStreamAsync(_loadedCountMove))
+        {
+            if (PokemonInfo.MoveList.All(mc => mc.Id != m.Id))
+            {
+                PokemonInfo.MoveList.Add(m);
+                await RedisRepository.StoreMoveCardAsync(m);
+            }
+
+            _loadedCountMove = PokemonInfo.MoveList.Count;
+
+            StateHasChanged();
+        }
+    }
+}

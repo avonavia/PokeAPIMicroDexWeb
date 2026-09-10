@@ -1,0 +1,652 @@
+﻿@page "/selector"
+@using PokeAPIAgent
+@using PokeAPIAgent.Entities
+@using PokeAPIMicroDex.Components.Entities
+
+@inject Connection PokemonInfo
+@inject PokemonRedisRepository RedisRepository
+@inject BattleStateService BattleState
+@inject NavigationManager Navigation
+
+<style>
+    .modal-backdrop {
+        animation: fadeIn 0.3s;
+    }
+
+    .modal-content {
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        max-height: 80vh;
+        overflow-y: auto;
+        animation: slideDown 0.3s;
+    }
+</style>
+
+<div
+    style="position: absolute; top: 0; left: 0; width: 50%; height: 100%; background-color: rgba(0, 0, 255, 0.1); z-index: -1;"></div>
+<div
+    style="position: absolute; top: 0; right: 0; width: 50%; height: 100%; background-color: rgba(255, 0, 0, 0.1); z-index: -1;"></div>
+
+<MudContainer Class="d-flex flex-column align-items-center justify-start"
+              Style="height: 100vh; padding: 16px; position: relative; z-index: 1;">
+    <MudText Typo="Typo.h4" Align="Align.Center" Class="mb-4">Battle Mode</MudText>
+
+    <div style="display: flex; width: 100%; max-width: 1400px; height: calc(100vh - 150px);">
+        <div style="flex: 1; display: flex; justify-content: center; align-items: center;">
+            <div style="display: flex; flex-direction: column; align-items: center; width: 100%; max-width: 400px;">
+                <div style="margin-bottom: 20px;">
+                    @if (_player1Pokemon != null)
+                    {
+                        var selectedPokemon = _player1Pokemon;
+                        <div style="text-align: center; margin-top: 8px;">
+                            <MudText Typo="Typo.subtitle1">@selectedPokemon.Name</MudText>
+                        </div>
+                        <MudPaper Elevation="4"
+                                  Style="width: 300px; height: 300px; background-color: #555; display: flex; justify-content: center; align-items: center; cursor: pointer;"
+                                  @onclick="() => OnPlusClick(1)">
+                            <img src="@selectedPokemon.ImageUrl" alt="@selectedPokemon.Name"
+                                 style="width: 200px; height: 200px;"/>
+                        </MudPaper>
+                    }
+                    else
+                    {
+                        <MudPaper Elevation="4"
+                                  Style="width: 300px; height: 300px; background-color: #555; cursor: pointer; display: flex; align-items: center; justify-content: center;"
+                                  @onclick="() => OnPlusClick(1)">
+                            <MudText Style="color: white; font-size: 100px;">+</MudText>
+                        </MudPaper>
+                    }
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; width: 100%;">
+                    <MudButton Variant="Variant.Filled" Style="width: 100%;" @onclick="() => ShowMoveSelector(1, 1)">
+                        @if (_player1Move1 != null)
+                        {
+                            @_player1Move1.Name
+                        }
+                        else
+                        {
+                            <span>Select Move</span>
+                        }
+                    </MudButton>
+                    <MudButton Variant="Variant.Filled" Style="width: 100%;" @onclick="() => ShowMoveSelector(1, 2)">
+                        @if (_player1Move2 != null)
+                        {
+                            @_player1Move2.Name
+                        }
+                        else
+                        {
+                            <span>Select Move</span>
+                        }
+                    </MudButton>
+                    <MudButton Variant="Variant.Filled" Style="width: 100%;" @onclick="() => ShowMoveSelector(1, 3)">
+                        @if (_player1Move3 != null)
+                        {
+                            @_player1Move3.Name
+                        }
+                        else
+                        {
+                            <span>Select Move</span>
+                        }
+                    </MudButton>
+                    <MudButton Variant="Variant.Filled" Style="width: 100%;" @onclick="() => ShowMoveSelector(1, 4)">
+                        @if (_player1Move4 != null)
+                        {
+                            @_player1Move4.Name
+                        }
+                        else
+                        {
+                            <span>Select Move</span>
+                        }
+                    </MudButton>
+                </div>
+                <div style="margin-top: 16px;">
+                    <MudTextField @bind-Value="_player1Name" Label="Player 1 Name" Variant="Variant.Outlined"
+                                  Style="width: 150px; margin-top: 8px;"/>
+                    <MudButton Variant="Variant.Outlined" Style="width: 150px;" @onclick="() => OnRandomize(1)">
+                        Randomize
+                    </MudButton>
+                </div>
+            </div>
+        </div>
+
+        <div style="flex: 1; display: flex; justify-content: center; align-items: center;">
+            <div style="display: flex; flex-direction: column; align-items: center; width: 100%; max-width: 400px;">
+                <div style="margin-bottom: 20px;">
+                    @if (_player2Pokemon != null)
+                    {
+                        var selectedPokemon = _player2Pokemon;
+                        <div style="text-align: center; margin-top: 8px;">
+                            <MudText Typo="Typo.subtitle1">@selectedPokemon.Name</MudText>
+                        </div>
+                        <MudPaper Elevation="4"
+                                  Style="width: 300px; height: 300px; background-color: #555; display: flex; justify-content: center; align-items: center; cursor: pointer;"
+                                  @onclick="() => OnPlusClick(2)">
+                            <img src="@selectedPokemon.ImageUrl" alt="@selectedPokemon.Name"
+                                 style="width: 200px; height: 200px;"/>
+                        </MudPaper>
+                    }
+                    else
+                    {
+                        <MudPaper Elevation="4"
+                                  Style="width: 300px; height: 300px; background-color: #555; cursor: pointer; display: flex; align-items: center; justify-content: center;"
+                                  @onclick="() => OnPlusClick(2)">
+                            <MudText Style="color: white; font-size: 100px;">+</MudText>
+                        </MudPaper>
+                    }
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; width: 100%;">
+                    <MudButton Variant="Variant.Filled" Style="width: 100%;" @onclick="() => ShowMoveSelector(2, 1)">
+                        @if (_player2Move1 != null)
+                        {
+                            @_player2Move1.Name
+                        }
+                        else
+                        {
+                            <span>Select Move</span>
+                        }
+                    </MudButton>
+                    <MudButton Variant="Variant.Filled" Style="width: 100%;" @onclick="() => ShowMoveSelector(2, 2)">
+                        @if (_player2Move2 != null)
+                        {
+                            @_player2Move2.Name
+                        }
+                        else
+                        {
+                            <span>Select Move</span>
+                        }
+                    </MudButton>
+                    <MudButton Variant="Variant.Filled" Style="width: 100%;" @onclick="() => ShowMoveSelector(2, 3)">
+                        @if (_player2Move3 != null)
+                        {
+                            @_player2Move3.Name
+                        }
+                        else
+                        {
+                            <span>Select Move</span>
+                        }
+                    </MudButton>
+                    <MudButton Variant="Variant.Filled" Style="width: 100%;" @onclick="() => ShowMoveSelector(2, 4)">
+                        @if (_player2Move4 != null)
+                        {
+                            @_player2Move4.Name
+                        }
+                        else
+                        {
+                            <span>Select Move</span>
+                        }
+                    </MudButton>
+                </div>
+                <div style="margin-top: 16px;">
+                    <MudTextField @bind-Value="_player2Name" Label="Player 2 Name" Variant="Variant.Outlined"
+                                  Style="width: 150px; margin-top: 8px;"/>
+                    <MudButton Variant="Variant.Outlined" Style="width: 150px;" @onclick="() => OnRandomize(2)">
+                        Randomize
+                    </MudButton>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div style="margin-top: -60px; display: flex; justify-content: center; width: 100%;">
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" Style="width: 200px;" @onclick="OnBattle">Battle!
+        </MudButton>
+    </div>
+
+    @if (_isPokemonSelectorOpen)
+    {
+        <div class="modal-backdrop"
+             style="position: fixed; top:0; left:0; width:100%; height:100%; background-color: rgba(0,0,0,0.5); z-index: 9999;">
+            <div class="modal-content"
+                 style="margin: 50px auto; max-width: 90%; background-color: #1a1a27; padding: 20px; border-radius: 8px; position: relative;">
+                <Dex OnPokemonSelected="OnPokemonSelected" OnCancel="ClosePokemonSelector"/>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" Style="margin-top:16px;"
+                           @onclick="ClosePokemonSelector">Close
+                </MudButton>
+            </div>
+        </div>
+    }
+
+    @if (_isMoveSelectorOpen)
+    {
+        <div class="modal-backdrop"
+             style="position: fixed; top:0; left:0; width:100%; height:100%; background-color: rgba(0,0,0,0.5); z-index: 9999;">
+            <div class="modal-content"
+                 style="margin: 50px auto; max-width: 90%; background-color: #1a1a27; padding: 20px; border-radius: 8px;">
+                <MudGrid Justify="Justify.SpaceBetween" Style="align-items: flex-start">
+                    @foreach (var m in (_selectingPlayer == 1 ? _player1AvailableMoves.Except(_player1DisabledMoves) : _player2AvailableMoves.Except(_player2DisabledMoves)))
+                    {
+                        <MudItem xs="3" Style="align-content: center">
+                            <MudCard Class="mx-auto" Style="width: 280px; height: 350px; padding: 10px; cursor:pointer;"
+                                     @onclick="() => SelectMove(m)">
+                                <MudCardContent>
+                                    <MudGrid GutterSize="2">
+                                        <MudItem xs="12">
+                                            <MudText Typo="Typo.h6"
+                                                     Style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                                @m.Name
+                                            </MudText>
+                                        </MudItem>
+                                    </MudGrid>
+                                    <MudDivider Class="my-3"/>
+                                    <MudGrid GutterSize="2">
+                                        <MudItem xs="6">
+                                            <MudText Typo="Typo.body2">@m.Element</MudText>
+                                        </MudItem>
+                                        <MudItem xs="6">
+                                            <MudText Typo="Typo.body2">@m.DamageClass</MudText>
+                                        </MudItem>
+                                    </MudGrid>
+                                    <MudDivider Class="my-3"/>
+                                    <MudGrid GutterSize="2" Justify="Justify.SpaceBetween">
+                                        <MudItem xs="4" Style="text-align:left;">
+                                            <MudText Typo="Typo.body1">Power: @m.Power</MudText>
+                                        </MudItem>
+                                        <MudItem xs="4" Style="text-align:left;">
+                                            <MudText Typo="Typo.body1">Acc: @m.Accuracy</MudText>
+                                        </MudItem>
+                                        <MudItem xs="4" Style="text-align:left;">
+                                            <MudText Typo="Typo.body1">PP: @m.Pp</MudText>
+                                        </MudItem>
+                                    </MudGrid>
+                                    <MudDivider Class="my-3"/>
+                                    <MudText Typo="Typo.body1">@m.Effect</MudText>
+                                </MudCardContent>
+                            </MudCard>
+                        </MudItem>
+                    }
+                </MudGrid>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" Style="margin-top:16px;"
+                           @onclick="CloseMoveSelector">Close
+                </MudButton>
+            </div>
+        </div>
+    }
+</MudContainer>
+
+@code {
+    private readonly Random _random = new();
+    private bool _isPokemonSelectorOpen = false;
+    private bool _isMoveSelectorOpen = false;
+    private int _selectingPlayer = 0;
+
+    private PokemonCard? _player1Pokemon = null;
+    private PokemonCard? _player2Pokemon = null;
+
+    private string _player1Name = "Player 1";
+    private string _player2Name = "Player 2";
+
+    private List<MoveCard> _player1AvailableMoves = new();
+    private List<MoveCard> _player2AvailableMoves = new();
+
+    private List<MoveCard> _player1DisabledMoves = new();
+    private List<MoveCard> _player2DisabledMoves = new();
+
+    private MoveCard? _player1Move1;
+    private MoveCard? _player1Move2;
+    private MoveCard? _player1Move3;
+    private MoveCard? _player1Move4;
+
+    private MoveCard? _player2Move1;
+    private MoveCard? _player2Move2;
+    private MoveCard? _player2Move3;
+    private MoveCard? _player2Move4;
+    private int _currentMoveSlot = 0;
+
+    private void OnPlusClick(int player)
+    {
+        _selectingPlayer = player;
+        _isPokemonSelectorOpen = true;
+    }
+
+    private void OnRandomize(int player)
+    {
+        if (PokemonInfo.PokemonList != null && PokemonInfo.PokemonList.Any() && PokemonInfo.MoveList != null && PokemonInfo.MoveList.Any())
+        {
+            var randomPokemonId = _random.Next(1, PokemonInfo.TotalCount);
+            var randomPokemon = PokemonInfo.PokemonList[randomPokemonId - 1];
+
+            if (randomPokemon != null)
+            {
+                _selectingPlayer = player;
+                OnPokemonSelected(randomPokemon);
+                _selectingPlayer = 0;
+            }
+
+            List<MoveCard> availableMovesCurrent = new();
+
+            if (player == 1)
+            {
+                availableMovesCurrent = _player1AvailableMoves;
+            }
+            else if (player == 2)
+            {
+                availableMovesCurrent = _player2AvailableMoves;
+            }
+
+            var selectedMoves = new List<int>();
+
+            while (selectedMoves.Count < 4)
+            {
+                int moveId = _random.Next(0, availableMovesCurrent.Count);
+
+                if (!selectedMoves.Contains(moveId))
+                {
+                    selectedMoves.Add(moveId);
+                }
+            }
+
+            var randomMove1Id = selectedMoves[0];
+            var randomMove2Id = selectedMoves[1];
+            var randomMove3Id = selectedMoves[2];
+            var randomMove4Id = selectedMoves[3];
+
+            if (player == 1)
+            {
+                _player1DisabledMoves.Clear();
+
+                _player1DisabledMoves.Add(_player1AvailableMoves[randomMove1Id]);
+                _player1DisabledMoves.Add(_player1AvailableMoves[randomMove2Id]);
+                _player1DisabledMoves.Add(_player1AvailableMoves[randomMove3Id]);
+                _player1DisabledMoves.Add(_player1AvailableMoves[randomMove4Id]);
+
+                _player1Move1 = _player1AvailableMoves[randomMove1Id];
+                _player1Move2 = _player1AvailableMoves[randomMove2Id];
+                _player1Move3 = _player1AvailableMoves[randomMove3Id];
+                _player1Move4 = _player1AvailableMoves[randomMove4Id];
+            }
+            else if (player == 2)
+            {
+                _player2DisabledMoves.Clear();
+
+                _player2DisabledMoves.Add(_player2AvailableMoves[randomMove1Id]);
+                _player2DisabledMoves.Add(_player2AvailableMoves[randomMove2Id]);
+                _player2DisabledMoves.Add(_player2AvailableMoves[randomMove3Id]);
+                _player2DisabledMoves.Add(_player2AvailableMoves[randomMove4Id]);
+
+                _player2Move1 = _player2AvailableMoves[randomMove1Id];
+                _player2Move2 = _player2AvailableMoves[randomMove2Id];
+                _player2Move3 = _player2AvailableMoves[randomMove3Id];
+                _player2Move4 = _player2AvailableMoves[randomMove4Id];
+            }
+
+            StateHasChanged();
+        }
+    }
+
+    private void OnPokemonSelected(PokemonCard selectedPokemon)
+    {
+        if (PokemonInfo.PokemonList != null && PokemonInfo.PokemonList.Any() && PokemonInfo.MoveList != null && PokemonInfo.MoveList.Any())
+        {
+            if (_selectingPlayer == 1)
+            {
+                _player1Pokemon = selectedPokemon;
+                _player1AvailableMoves = PokemonInfo.MoveList.Where(m => m.PokemonNames.Contains(_player1Pokemon.Name.ToLower())).ToList();
+
+                _player1Move1 = null;
+                _player1Move2 = null;
+                _player1Move3 = null;
+                _player1Move4 = null;
+            }
+            else if (_selectingPlayer == 2)
+            {
+                _player2Pokemon = selectedPokemon;
+                _player2AvailableMoves = PokemonInfo.MoveList.Where(m => m.PokemonNames.Contains(_player2Pokemon.Name.ToLower())).ToList();
+
+                _player2Move1 = null;
+                _player2Move2 = null;
+                _player2Move3 = null;
+                _player2Move4 = null;
+            }
+
+            _selectingPlayer = 0;
+            _isPokemonSelectorOpen = false;
+            StateHasChanged();
+        }
+    }
+
+    private void ClosePokemonSelector()
+    {
+        _selectingPlayer = 0;
+        _isPokemonSelectorOpen = false;
+        StateHasChanged();
+    }
+
+    private void ShowMoveSelector(int player, int moveSlot)
+    {
+        _selectingPlayer = player;
+        _currentMoveSlot = moveSlot;
+        _isMoveSelectorOpen = true;
+    }
+
+    private void SelectMove(MoveCard move)
+    {
+        if (PokemonInfo.PokemonList != null && PokemonInfo.PokemonList.Any() && PokemonInfo.MoveList != null && PokemonInfo.MoveList.Any())
+        {
+            if (_selectingPlayer == 1)
+            {
+                _player1DisabledMoves.Add(move);
+
+                switch (_currentMoveSlot)
+                {
+                    case 1:
+                    {
+                        if (_player1Move1 != null)
+                        {
+                            _player1DisabledMoves.Remove(_player1Move1);
+                        }
+
+                        _player1Move1 = move;
+                        break;
+                    }
+                    case 2:
+                    {
+                        if (_player1Move2 != null)
+                        {
+                            _player1DisabledMoves.Remove(_player1Move2);
+                        }
+
+                        _player1Move2 = move;
+                        break;
+                    }
+                    case 3:
+                    {
+                        if (_player1Move3 != null)
+                        {
+                            _player1DisabledMoves.Remove(_player1Move3);
+                        }
+
+                        _player1Move3 = move;
+                        break;
+                    }
+                    case 4:
+                    {
+                        if (_player1Move3 != null)
+                        {
+                            _player1DisabledMoves.Remove(_player1Move4);
+                        }
+
+                        _player1Move4 = move;
+                        break;
+                    }
+                }
+            }
+            else if (_selectingPlayer == 2)
+            {
+                _player2DisabledMoves.Add(move);
+
+                switch (_currentMoveSlot)
+                {
+                    case 1:
+                    {
+                        if (_player2Move1 != null)
+                        {
+                            _player2DisabledMoves.Remove(_player2Move1);
+                        }
+
+                        _player2Move1 = move;
+                        break;
+                    }
+                    case 2:
+                    {
+                        if (_player2Move2 != null)
+                        {
+                            _player2DisabledMoves.Remove(_player2Move2);
+                        }
+
+                        _player2Move2 = move;
+                        break;
+                    }
+                    case 3:
+                    {
+                        if (_player2Move3 != null)
+                        {
+                            _player2DisabledMoves.Remove(_player2Move3);
+                        }
+
+                        _player2Move3 = move;
+                        break;
+                    }
+                    case 4:
+                    {
+                        if (_player2Move4 != null)
+                        {
+                            _player2DisabledMoves.Remove(_player2Move4);
+                        }
+
+                        _player2Move4 = move;
+                        break;
+                    }
+                }
+            }
+
+            _selectingPlayer = 0;
+            _isMoveSelectorOpen = false;
+            StateHasChanged();
+        }
+    }
+
+    private void CloseMoveSelector()
+    {
+        _selectingPlayer = 0;
+        _isMoveSelectorOpen = false;
+        StateHasChanged();
+    }
+
+    private void OnBattle()
+    {
+        if (_player1Pokemon != null && _player2Pokemon != null &&
+            _player1Move1 != null && _player1Move2 != null && _player1Move3 != null && _player1Move4 != null &&
+            _player2Move1 != null && _player2Move2 != null && _player2Move3 != null && _player2Move4 != null)
+        {
+            Player player1 = new Player
+            {
+                Id = 1,
+                Name = _player1Name,
+                Pokemon = _player1Pokemon,
+                Move1 = _player1Move1,
+                Move2 = _player1Move2,
+                Move3 = _player1Move3,
+                Move4 = _player1Move4,
+
+                HP = 100
+            };
+
+            Player player2 = new Player
+            {
+                Id = 2,
+                Name = _player2Name,
+                Pokemon = _player2Pokemon,
+                Move1 = _player2Move1,
+                Move2 = _player2Move2,
+                Move3 = _player2Move3,
+                Move4 = _player2Move4,
+
+                HP = 100
+            };
+
+            BattleState.Player1 = player1;
+            BattleState.Player2 = player2;
+
+            Navigation.NavigateTo("/battle");
+        }
+    }
+
+    //Loading Data
+    private int _loadedCount;
+    private int _loadedCountAb;
+    private int _loadedCountMove;
+
+    protected override Task OnInitializedAsync()
+    {
+        _loadedCount = PokemonInfo.PokemonList.Count;
+        _loadedCountAb = PokemonInfo.AbilityList.Count;
+        _loadedCountMove = PokemonInfo.MoveList.Count;
+        _ = LoadPokemonAsync();
+        _ = LoadAbilitiesAsync();
+        _ = LoadMovesAsync();
+        return Task.FromResult(Task.CompletedTask);
+    }
+
+    private async Task LoadPokemonAsync()
+    {
+        if (!PokemonInfo.PokemonList.Any())
+            PokemonInfo.PokemonList = await RedisRepository.GetAllPokemonCards();
+
+        _loadedCount = PokemonInfo.PokemonList.Count;
+
+        await foreach (var pokemon in PokemonInfo.GetPokemonStreamAsync(_loadedCount))
+        {
+            if (PokemonInfo.PokemonList.All(p => p.Id != pokemon.Id))
+            {
+                PokemonInfo.PokemonList.Add(pokemon);
+                await RedisRepository.StorePokemonCardAsync(pokemon);
+            }
+
+            _loadedCount = PokemonInfo.PokemonList.Count;
+
+            StateHasChanged();
+        }
+    }
+
+    private async Task LoadAbilitiesAsync()
+    {
+        if (!PokemonInfo.AbilityList.Any())
+            PokemonInfo.AbilityList = await RedisRepository.GetAllAbilityCards();
+
+        _loadedCountAb = PokemonInfo.AbilityList.Count;
+
+        await foreach (var ab in PokemonInfo.GetAbilityStreamAsync(_loadedCountAb))
+        {
+            if (PokemonInfo.AbilityList.All(ac => ac.Id != ab.Id))
+            {
+                PokemonInfo.AbilityList.Add(ab);
+                await RedisRepository.StoreAbilityCardAsync(ab);
+            }
+
+            _loadedCountAb = PokemonInfo.AbilityList.Count;
+
+            StateHasChanged();
+        }
+    }
+
+    private async Task LoadMovesAsync()
+    {
+        if (!PokemonInfo.MoveList.Any())
+            PokemonInfo.MoveList = await RedisRepository.GetAllMoveCards();
+
+        _loadedCountMove = PokemonInfo.MoveList.Count;
+
+        await foreach (var m in PokemonInfo.GetMoveStreamAsync(_loadedCountMove))
+        {
+            if (PokemonInfo.MoveList.All(mc => mc.Id != m.Id))
+            {
+                PokemonInfo.MoveList.Add(m);
+                await RedisRepository.StoreMoveCardAsync(m);
+            }
+
+            _loadedCountMove = PokemonInfo.MoveList.Count;
+
+            StateHasChanged();
+        }
+    }
+
+}

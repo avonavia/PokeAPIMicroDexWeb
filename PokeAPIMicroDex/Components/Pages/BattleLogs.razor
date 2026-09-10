@@ -1,0 +1,120 @@
+﻿@page "/logs"
+@using PokeAPIAgent
+@using PokeAPIMicroDex.Components.Entities
+
+@inject PokemonRedisRepository RedisRepository
+@inject Connection PokemonInfo
+@inject BattleStateService BattleState
+
+<style>
+    .logs-container {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        padding: 20px;
+    }
+
+    .log-entry {
+        background-color: #1e1e2d;
+        padding: 8px;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        width: 100%;
+        height: 50vh;
+        box-sizing: border-box;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        font-size: 1em;
+    }
+
+    .participants {
+        display: flex;
+        justify-content: space-around;
+        align-items: flex-start;
+        gap: 20px;
+        margin-bottom: 8px;
+    }
+
+    .participant {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 45%;
+        min-width: 150px;
+    }
+
+    .participant h4 {
+        margin-bottom: 6px;
+        text-align: center;
+        font-size: 1.2em;
+    }
+
+    .participant img {
+        width: 200px;
+        height: 200px;
+        object-fit: contain;
+        margin-bottom: 6px;
+        border-radius: 8px;
+    }
+
+    .battle-date {
+        text-align: right;
+        font-size: 1.1em;
+        padding: 10px;
+    }
+</style>
+
+@if (PokemonInfo.BattleLogList == null || !PokemonInfo.BattleLogList.Any())
+{
+    <p>No battle logs available.</p>
+}
+else
+{
+    <div class="logs-container">
+        @foreach (var log in PokemonInfo.BattleLogList)
+        {
+            <div class="log-entry">
+                <div class="battle-date">
+                    <p><strong>Date:</strong> @log.BattleDate.ToString("g")</p>
+                </div>
+                <div class="participants">
+                    <div class="participant">
+                        <h3>Winner</h3>
+                        <h4>@log.WinnerName</h4>
+                        <img src="@log.WinningPokemon.ImageUrl" alt="@log.WinningPokemon.Name"/>
+                        <p>@log.WinningPokemon.Name</p>
+                        <p><strong>HP Left:</strong> @log.WinnerHPLeft</p>
+                    </div>
+                    <div class="participant">
+                        <h3>Loser</h3>
+                        <h4>@log.LoserName</h4>
+                        <img src="@log.LosingPokemon.ImageUrl" alt="@log.LosingPokemon.Name"/>
+                        <p>@log.LosingPokemon.Name</p>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+@code {
+
+    protected override async void OnInitialized()
+    {
+        try
+        {
+            if (PokemonInfo.BattleLogList == null || !PokemonInfo.BattleLogList.Any() || BattleState.ShouldReLoadLogs)
+            {
+                PokemonInfo.BattleLogList = await RedisRepository.GetAllBattleLogs();
+                PokemonInfo.BattleLogList = PokemonInfo.BattleLogList.OrderByDescending(l => l.BattleDate).ToList();
+                BattleState.ShouldReLoadLogs = false;
+                StateHasChanged();
+            }
+        }
+        catch
+        {
+            //Redis was empty
+        }
+    }
+}

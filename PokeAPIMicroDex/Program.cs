@@ -3,6 +3,7 @@ using MudBlazor.Services;
 using Poke.Redis;
 using PokeAPIAgent;
 using PokeAPIMicroDex.Components;
+using PokeAPIMicroDex.Components.Entities;
 using PokeApiNet;
 using ILogger = Serilog.ILogger;
 
@@ -33,6 +34,8 @@ builder.Services.AddSingleton<PokemonRedisRepository>(pcr =>
     var logger = pcr.GetRequiredService<ILogger>();
     return new PokemonRedisRepository(agent, logger);
 });
+
+builder.Services.AddScoped<BattleStateService>();
 
 var app = builder.Build();
 

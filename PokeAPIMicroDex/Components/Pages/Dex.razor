@@ -1,5 +1,6 @@
 ﻿@page "/dex"
 @using PokeAPIAgent
+@using PokeAPIAgent.Entities
 
 @inject Connection PokemonInfo
 @inject PokemonRedisRepository RedisRepository
@@ -51,32 +52,36 @@
         <MudProgressLinear Color="Color.Primary" Indeterminate="true"/>
     }
     <p>@_loadedCount / @PokemonInfo.TotalCount loaded</p>
-    
+
     <MudGrid>
         @foreach (var pokemon in PokemonInfo.PokemonList)
         {
             <MudItem xs="12" sm="6" md="4" lg="3">
-                <div @onmouseenter="@(() => pokemon.IsHovered = true)" @onmouseleave="@(() => pokemon.IsHovered = false)">
-                    <div class="flip-card @(pokemon.IsHovered ? "flipped" : "")" style="width: 250px; height: 320px;">
-                        <div class="flip-card-inner">
-                            <div class="flip-card-front">
-                                <MudCard Class="mx-auto" Style="max-width: 250px; height: 320px">
-                                    <MudCardMedia Image="@pokemon.ImageUrl" Style="max-height: 310px"/>
-                                    <MudCardContent>
-                                        <MudText Typo="Typo.h6">@pokemon.Name</MudText>
-                                        <MudText Typo="Typo.body2">Type: @pokemon.Type</MudText>
-                                        <MudText Typo="Typo.body2">ID: @pokemon.Id</MudText>
-                                    </MudCardContent>
-                                </MudCard>
-                            </div>
-                            <div class="flip-card-back">
-                                <MudCard Class="mx-auto" Style="max-width: 250px; height: 320px">
-                                    <MudCardMedia Image="@pokemon.ImageUrlBack" Style="max-height: 310px"/>
-                                    <MudCardContent>
-                                        <MudText Typo="Typo.h6">@pokemon.Name</MudText>
-                                        <MudText Typo="Typo.body2">Weight: @pokemon.Weight</MudText>
-                                    </MudCardContent>
-                                </MudCard>
+                <div @onclick="() => SelectPokemon(pokemon)" style="cursor: pointer;">
+                    <div @onmouseenter="@(() => pokemon.IsHovered = true)"
+                         @onmouseleave="@(() => pokemon.IsHovered = false)">
+                        <div class="flip-card @(pokemon.IsHovered ? "flipped" : "")"
+                             style="width: 250px; height: 320px;">
+                            <div class="flip-card-inner">
+                                <div class="flip-card-front">
+                                    <MudCard Class="mx-auto" Style="max-width: 250px; height: 320px">
+                                        <MudCardMedia Image="@pokemon.ImageUrl" Style="max-height: 310px"/>
+                                        <MudCardContent>
+                                            <MudText Typo="Typo.h6">@pokemon.Name</MudText>
+                                            <MudText Typo="Typo.body2">Type: @pokemon.Type</MudText>
+                                            <MudText Typo="Typo.body2">ID: @pokemon.Id</MudText>
+                                        </MudCardContent>
+                                    </MudCard>
+                                </div>
+                                <div class="flip-card-back">
+                                    <MudCard Class="mx-auto" Style="max-width: 250px; height: 320px">
+                                        <MudCardMedia Image="@pokemon.ImageUrlBack" Style="max-height: 310px"/>
+                                        <MudCardContent>
+                                            <MudText Typo="Typo.h6">@pokemon.Name</MudText>
+                                            <MudText Typo="Typo.body2">Weight: @pokemon.Weight</MudText>
+                                        </MudCardContent>
+                                    </MudCard>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -87,21 +92,24 @@
 </MudContainer>
 
 @code {
+    [Parameter] public EventCallback<PokemonCard> OnPokemonSelected { get; set; }
+    [Parameter] public EventCallback OnCancel { get; set; }
     private int _loadedCount;
 
-    protected override async Task OnInitializedAsync()
+    protected override Task OnInitializedAsync()
     {
         _loadedCount = PokemonInfo.PokemonList.Count;
-        await LoadPokemonAsync();
+        _ = LoadPokemonAsync();
+        return Task.CompletedTask;
     }
 
     private async Task LoadPokemonAsync()
     {
         if (!PokemonInfo.PokemonList.Any())
             PokemonInfo.PokemonList = await RedisRepository.GetAllPokemonCards();
-        
+
         _loadedCount = PokemonInfo.PokemonList.Count;
-        
+
         await foreach (var pokemon in PokemonInfo.GetPokemonStreamAsync(_loadedCount))
         {
             if (PokemonInfo.PokemonList.All(p => p.Id != pokemon.Id))
@@ -115,6 +123,17 @@
             StateHasChanged();
         }
     }
+
+    private async Task SelectPokemon(PokemonCard pokemon)
+    {
+        await OnPokemonSelected.InvokeAsync(pokemon);
+    }
+
+    private async Task Cancel()
+    {
+        await OnCancel.InvokeAsync();
+    }
+
 }
 
 

@@ -2,6 +2,7 @@ using System.Text.Json;
 using Poke.Redis;
 using PokeAPIAgent.Entities;
 using Serilog;
+using StackExchange.Redis;
 
 namespace PokeAPIAgent;
 
@@ -197,5 +198,77 @@ public class PokemonRedisRepository
         
         _logger.Information($"Loaded [{cards.Count}] move cards");
         return cards;
+    }
+    
+    private async Task<BattleLog?> GetBattleLogAsync(RedisKey key)
+    {
+        var db = _agent.GetDatabase();
+        if (db != null)
+        {
+            _logger.Information($"Trying to get [{key}] from Redis");
+            var json = await db.StringGetAsync(key);
+            if (json.IsNullOrEmpty)
+                return null;
+
+            return JsonSerializer.Deserialize<BattleLog>(json.ToString());
+        }
+        else
+        {
+            _logger.Warning($"Redis is not available. Can't get log [{key}]");
+        }
+        
+        return null;
+    }
+    
+    public async Task StoreBattleLogAsync(BattleLog log)
+    {
+        var json = JsonSerializer.Serialize(log);
+        var db = _agent.GetDatabase();
+        if (db != null)
+        {
+            _logger.Information($"Adding [log:{log.Id}] to Redis");
+            await db.StringSetAsync($"log:{log.Id}", json);
+        }
+        else
+        {
+            _logger.Warning($"Redis is not available. Skipping adding log [{log.Id}]");
+        }
+    }
+    
+    public async Task<List<BattleLog>> GetAllBattleLogs()
+    {
+        _logger.Information("Getting all Battle Logs from Redis...");
+        
+        var db = _agent.GetDatabase();
+        if (db == null)
+        {
+            _logger.Warning("Redis is not available. Skipping");   
+            return new List<BattleLog>();
+        }
+        
+        var logs = new List<BattleLog>();
+        
+        var keys = _agent.GetKeys();
+
+        if (keys != null && keys.Any())
+        {
+            var logKeys = keys.Where(k => k.ToString().Contains("log")).ToList();
+            
+            foreach (var key in logKeys)
+            {
+                var log = await GetBattleLogAsync(key);
+
+                if (log != null)
+                    logs.Add(log);
+            }
+            
+            _logger.Information($"Loaded [{logs.Count}] Battle Logs from Redis");
+        }
+        else
+        {
+            _logger.Information("Redis is empty");
+        }
+
+        return logs;
     }
 }

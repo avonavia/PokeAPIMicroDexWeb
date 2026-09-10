@@ -1,0 +1,654 @@
+﻿@page "/battle"
+@using PokeAPIAgent
+@using PokeAPIAgent.Entities
+@using PokeAPIMicroDex.Components.Entities
+
+@inject PokemonRedisRepository RedisRepository
+@inject BattleStateService BattleState
+@inject NavigationManager Navigation
+
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+
+<style>
+    body {
+        overflow: hidden;
+    }
+
+    .pokemon-container {
+        position: absolute;
+        width: 200px;
+        height: auto;
+    }
+
+    .player1 {
+        bottom: 100px;
+        left: 300px;
+    }
+
+    .player2 {
+        top: 150px;
+        right: 500px;
+    }
+
+    .pokemon-image {
+        width: 300px;
+        height: 300px;
+    }
+
+    .attack-buttons {
+        position: fixed;
+        bottom: 50px;
+        right: 100px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        width: 420px;
+        z-index: 1000;
+    }
+
+    .attack-button {
+        flex: 1 1 calc(50% - 10px);
+        padding: 15px;
+        background-color: #f5deb3;
+        color: #333;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 16px;
+        font-family: 'Press Start 2P', cursive;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+        transition: background-color 0.3s, transform 0.2s;
+    }
+
+    .attack-button:hover {
+        background-color: #e6c17b;
+        transform: translateY(-2px);
+    }
+
+    .message-box {
+        position: relative;
+        top: -100px;
+        left: -200px;
+        width: 600px;
+        min-height: 150px;
+        padding: 15px;
+        background-color: #f5deb3;
+        border-radius: 3px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        font-family: 'Press Start 2P', cursive;
+        font-size: 20px;
+        color: #333;
+        z-index: 1001;
+    }
+
+    .pokemon-attack {
+        animation: attackMove 0.3s forwards;
+    }
+
+    @@keyframes attackMove {
+        0% {
+            transform: translateX(0);
+        }
+        50% {
+            transform: translateX(30px);
+        }
+        100% {
+            transform: translateX(0);
+        }
+    }
+</style>
+
+<div
+    style="background-image: url(battlebackground.jpg); background-size: cover; background-position: center; height: 100vh; position: relative;">
+    <div class="battle-background" style="position: relative; height: 100vh;">
+        @if (_player1?.Pokemon != null)
+        {
+            <div class="pokemon-container player1">
+                <div class="message-box">
+                    @_displayedMessageText
+                    
+                    @if (_battleFinished)
+                    {
+                        <div style="position: absolute; bottom: 10px; right: 10px;">
+                            <MudButton Variant="Variant.Filled" Color="Color.Primary" @onclick="SaveAndExit">Save & Exit</MudButton>
+                        </div>
+                    }
+                </div>
+                <MudProgressLinear
+                    Value="@_player1Hp"
+                    Color="Color.Success"
+                    Style="height: 20px; width: 100%; left: 50px; top: 30px; box-shadow: 0 0 5px rgba(0,0,0,0.5); background-color: #555;"
+                    BufferValue="100"/>
+                <img src="@(_player1.Pokemon.ImageUrlBack)" class="pokemon-image @(GetPokemonAnimationClass(_player1))" alt="Player 1 Pokémon"/>
+            </div>
+        }
+        else
+        {
+            <p>Loading Player 1...</p>
+        }
+
+        @if (_player2?.Pokemon != null)
+        {
+            <div class="pokemon-container player2">
+                <MudProgressLinear 
+                    Value="@_player2Hp" 
+                    Color="Color.Success" 
+                    Style="height: 20px; width: 100%; left: 100px; top: 50px; box-shadow: 0 0 5px rgba(0,0,0,0.5); background-color: #555;" 
+                    BufferValue="100" />
+                <img src="@(_player2.Pokemon.ImageUrl)" class="pokemon-image @(GetPokemonAnimationClass(_player2))" alt="Player 2 Pokémon"/>
+            </div>
+        }
+        else
+        {
+            <p>Loading Player 2...</p>
+        }
+
+        @if (_currentPlayer != null)
+        {
+            <div class="attack-buttons">
+                <button @onmouseover="OpenMovePopup1" @onmouseleave="CloseMovePopup1" class="attack-button"
+                        @onclick="() => PerformAttack(_currentPlayer.Move1)" disabled="@_isPlayerAttacking">@_currentPlayer.Move1.Name: [@_currentPlayer.Move1.Pp]
+                    <MudPopover Open="_isMovePopup1Open" 
+                                AnchorOrigin="Origin.BottomCenter" 
+                                TransformOrigin="Origin.TopCenter" 
+                                Class="pa-4">
+                        <MudText Typo="Typo.body2">
+                            @_currentPlayer.Move1.DamageClass<br/>
+                            Acc: @_currentPlayer.Move1.Accuracy<br/>
+                            Power: @_currentPlayer.Move1.Power<br/>
+                            Element: @_currentPlayer.Move1.Element<br/>
+                        </MudText>
+                    </MudPopover>
+                    </button>
+                <button @onmouseover="OpenMovePopup2" @onmouseleave="CloseMovePopup2" class="attack-button"
+                        @onclick="() => PerformAttack(_currentPlayer.Move2)" disabled="@_isPlayerAttacking">@_currentPlayer.Move2.Name: [@_currentPlayer.Move2.Pp]
+                    <MudPopover Open="_isMovePopup2Open" 
+                                AnchorOrigin="Origin.BottomCenter" 
+                                TransformOrigin="Origin.TopCenter" 
+                                Class="pa-4">
+                        <MudText Typo="Typo.body2">
+                            @_currentPlayer.Move2.DamageClass<br/>
+                            Acc: @_currentPlayer.Move2.Accuracy<br/>
+                            Power: @_currentPlayer.Move2.Power<br/>
+                            Element: @_currentPlayer.Move2.Element<br/>
+                        </MudText>
+                    </MudPopover>
+                    </button>
+                <button @onmouseover="OpenMovePopup3" @onmouseleave="CloseMovePopup3" class="attack-button"
+                        @onclick="() => PerformAttack(_currentPlayer.Move3)" disabled="@_isPlayerAttacking">@_currentPlayer.Move3.Name: [@_currentPlayer.Move3.Pp]
+                    <MudPopover Open="_isMovePopup3Open" 
+                                AnchorOrigin="Origin.BottomCenter" 
+                                TransformOrigin="Origin.TopCenter" 
+                                Class="pa-4">
+                        <MudText Typo="Typo.body2">
+                            @_currentPlayer.Move3.DamageClass<br/>
+                            Acc: @_currentPlayer.Move3.Accuracy<br/>
+                            Power: @_currentPlayer.Move3.Power<br/>
+                            Element: @_currentPlayer.Move3.Element<br/>
+                        </MudText>
+                    </MudPopover>
+                    </button>
+                <button @onmouseover="OpenMovePopup4" @onmouseleave="CloseMovePopup4" class="attack-button"
+                        @onclick="() => PerformAttack(_currentPlayer.Move4)" disabled="@_isPlayerAttacking">@_currentPlayer.Move4.Name: [@_currentPlayer.Move4.Pp]
+                    <MudPopover Open="_isMovePopup4Open" 
+                                AnchorOrigin="Origin.BottomCenter" 
+                                TransformOrigin="Origin.TopCenter" 
+                                Class="pa-4">
+                        <MudText Typo="Typo.body2">
+                            @_currentPlayer.Move4.DamageClass<br/>
+                            Acc: @_currentPlayer.Move4.Accuracy<br/>
+                            Power: @_currentPlayer.Move4.Power<br/>
+                            Element: @_currentPlayer.Move4.Element<br/>
+                        </MudText>
+                    </MudPopover>
+                    </button>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    private bool _battleFinished = false;
+    private Player _player1 = new();
+    private Player _player2 = new();
+    private Player? _currentPlayer = null;
+    private Random _random = new();
+    private string _messageText = "";
+    private string _displayedMessageText = "";
+    
+    private bool _player1Attacking = false;
+    private bool _player2Attacking = false;
+    private bool _isPlayerAttacking = false;
+
+    private CancellationTokenSource? _messageCancellationTokenSource = new();
+    
+    private bool _isMovePopup1Open;
+    private bool _isMovePopup2Open;
+    private bool _isMovePopup3Open;
+    private bool _isMovePopup4Open;
+    
+    protected override async void OnInitialized()
+    {
+        if (BattleState == null || BattleState.Player1 == null || BattleState.Player2 == null)
+        {
+            Navigation.NavigateTo("/selector");
+        }
+        else
+        {
+            _player1 = BattleState.Player1;
+            _player2 = BattleState.Player2;
+
+            var turn = _random.Next(1, 3);
+
+            if (turn == 1)
+            {
+                _currentPlayer = _player1;
+            }
+            else
+            {
+                _currentPlayer = _player2;
+            }
+
+            _messageText = $"Battle begins!\n Player [{_currentPlayer.Name}] starts!";
+            await AnimateMessage();
+        }
+    }
+    private double _player1Hp => (_player1.HP / (double)100) * 100;
+    private double _player2Hp => (_player2.HP / (double)100) * 100;
+
+    private void OpenMovePopup1() => _isMovePopup1Open = true;
+    private void CloseMovePopup1() => _isMovePopup1Open = false;
+
+    private void OpenMovePopup2() => _isMovePopup2Open = true;
+    private void CloseMovePopup2() => _isMovePopup2Open = false;
+    
+    private void OpenMovePopup3() => _isMovePopup3Open = true;
+    private void CloseMovePopup3() => _isMovePopup3Open = false;
+    
+    private void OpenMovePopup4() => _isMovePopup4Open = true;
+    private void CloseMovePopup4() => _isMovePopup4Open = false;
+
+    private async Task PerformAttack(MoveCard movePerformed)
+    {
+        var moveUsed = false;
+        _isPlayerAttacking = true;
+        
+        if (_currentPlayer == _player1)
+        {
+            if (_player1.Move1.Id == movePerformed.Id)
+            {
+                if (_player1.Move1.Pp == 0)
+                {
+                    _messageText = $"{_currentPlayer.Pokemon.Name} cannot use move {movePerformed.Name}! Out of PP!";
+                    await AnimateMessage();
+                }
+                else
+                {
+                    _player1.Move1.Pp--;
+                    moveUsed = true;
+                }
+            }
+            else if (_player1.Move2.Id == movePerformed.Id)
+            {
+                if (_player1.Move2.Pp == 0)
+                {
+                    _messageText = $"{_currentPlayer.Pokemon.Name} cannot use move {movePerformed.Name}! Out of PP!";
+                    await AnimateMessage();
+                }
+                else
+                {
+                    _player1.Move2.Pp--;
+                    moveUsed = true;
+                }
+            }
+            else if (_player1.Move3.Id == movePerformed.Id)
+            {
+                if (_player1.Move3.Pp == 0)
+                {
+                    _messageText = $"{_currentPlayer.Pokemon.Name} cannot use move {movePerformed.Name}! Out of PP!";
+                    await AnimateMessage();
+                }
+                else
+                {
+                    _player1.Move3.Pp--;
+                    moveUsed = true;
+                }
+            }
+            else if (_player1.Move4.Id == movePerformed.Id)
+            {
+                if (_player1.Move4.Pp == 0)
+                {
+                    _messageText = $"{_currentPlayer.Pokemon.Name} cannot use move {movePerformed.Name}! Out of PP!";
+                    await AnimateMessage();
+                }
+                else
+                {
+                    _player1.Move4.Pp--;
+                    moveUsed = true;
+                }
+            }
+            _player1Attacking = true;
+            await Task.Delay(300);
+            _player1Attacking = false;
+        }
+        else
+        {
+            if (_player2.Move1.Id == movePerformed.Id)
+            {
+                if (_player2.Move1.Pp == 0)
+                {
+                    _messageText = $"{_currentPlayer.Pokemon.Name} cannot use move {movePerformed.Name}! Out of PP!";
+                    await AnimateMessage();
+                }
+                else
+                {
+                    _player2.Move1.Pp--;
+                    moveUsed = true;
+                }
+            }
+            else if (_player2.Move2.Id == movePerformed.Id)
+            {
+                if (_player2.Move2.Pp == 0)
+                {
+                    _messageText = $"{_currentPlayer.Pokemon.Name} cannot use move {movePerformed.Name}! Out of PP!";
+                    await AnimateMessage();
+                }
+                else
+                {
+                    _player2.Move2.Pp--;
+                    moveUsed = true;
+                }
+            }
+            else if (_player2.Move3.Id == movePerformed.Id)
+            {
+                if (_player2.Move3.Pp == 0)
+                {
+                    _messageText = $"{_currentPlayer.Pokemon.Name} cannot use move {movePerformed.Name}! Out of PP!";
+                    await AnimateMessage();
+                }
+                else
+                {
+                    _player2.Move3.Pp--;
+                    moveUsed = true;
+                }
+            }
+            else if (_player2.Move4.Id == movePerformed.Id)
+            {
+                if (_player2.Move4.Pp == 0)
+                {
+                    _messageText = $"{_currentPlayer.Pokemon.Name} cannot use move {movePerformed.Name}! Out of PP!";
+                    await AnimateMessage();
+                }
+                else
+                {
+                    _player2.Move4.Pp--;
+                    moveUsed = true;
+                }
+            }
+            _player2Attacking = true;
+            await Task.Delay(300);
+            _player2Attacking = false;
+        }
+
+        if (moveUsed)
+        {
+            int roll = _random.Next(1, 101);
+            var damage = CalculateDamage(movePerformed);
+            var damageMessage = GetDamageMessage(movePerformed);
+
+            if (roll <= movePerformed.Accuracy && damage > 0)
+            {
+                if (_currentPlayer.Id == 1)
+                {
+                    if (damage <= _player2Hp)
+                    {
+                        _player2.HP -= damage;
+                    }
+                    else
+                    {
+                        damage = _player2.HP;
+                        _player2.HP = 0;
+                    }
+                }
+                else
+                {
+                    if (damage <= _player1Hp)
+                    {
+                        _player1.HP -= damage;
+                    }
+                    else
+                    {
+                        damage = _player1.HP;
+                        _player1.HP = 0;
+                    }
+                }
+                
+                _messageText = $"{_currentPlayer.Pokemon.Name} used {movePerformed.Name}!\n" +
+                               $"It did [{damage}] damage!\n" +
+                               $"{damageMessage}";
+            }
+            else
+            {
+                _messageText = $"{_currentPlayer.Pokemon.Name} used {movePerformed.Name}!\n" +
+                               $"It missed!";
+            }
+
+            if (_player1.HP == 0 || (_player1.Move1.Pp == 0 && _player1.Move2.Pp == 0 && _player1.Move3.Pp == 0 && _player1.Move4.Pp == 0))
+            {
+                _messageText = $"Player [{_player2.Name}] Wins!";
+                _battleFinished = true;
+            }
+            else if (_player2.HP == 0 || (_player2.Move1.Pp == 0 && _player2.Move2.Pp == 0 && _player2.Move3.Pp == 0 && _player2.Move4.Pp == 0))
+            {
+                _messageText = $"Player [{_player1.Name}] Wins!";
+                _battleFinished = true;
+            }
+
+            if (!_battleFinished)
+            {
+                ChangePlayer();
+                _isPlayerAttacking = false;
+            }
+            else
+            {
+                _isPlayerAttacking = true;
+            }
+            
+            await AnimateMessage();
+        }
+        else
+        {
+            _isPlayerAttacking = false;
+            
+            if (_player1.HP == 0 || (_player1.Move1.Pp == 0 && _player1.Move2.Pp == 0 && _player1.Move3.Pp == 0 && _player1.Move4.Pp == 0))
+            {
+                _messageText = $"Player [{_player2.Name}] Wins!";
+                _battleFinished = true;
+            }
+            else if (_player2.HP == 0 || (_player2.Move1.Pp == 0 && _player2.Move2.Pp == 0 && _player2.Move3.Pp == 0 && _player2.Move4.Pp == 0))
+            {
+                _messageText = $"Player [{_player1.Name}] Wins!";
+                _battleFinished = true;
+            }
+
+            if (_battleFinished)
+            {
+                _isPlayerAttacking = true;
+            }
+            
+            await AnimateMessage();
+        }
+    }
+
+    private void ChangePlayer()
+    {
+        if (_currentPlayer.Id == 1)
+        {
+            _currentPlayer = _player2;
+        }
+        else
+        {
+            _currentPlayer = _player1;
+        }
+    }
+
+    private async Task AnimateMessage()
+    {
+        await _messageCancellationTokenSource?.CancelAsync();
+
+        _messageCancellationTokenSource = new();
+
+        var token = _messageCancellationTokenSource.Token;
+
+        _displayedMessageText = "";
+        StateHasChanged();
+
+        try
+        {
+            foreach (char c in _messageText)
+            {
+                token.ThrowIfCancellationRequested();
+                _displayedMessageText += c;
+                StateHasChanged();
+                await Task.Delay(50, token);
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // Animation was canceled, do nothing
+        }
+    }
+    
+    private async void SaveAndExit()
+    {
+        Player winner = new();
+        Player loser = new();
+        PokemonCard winnerPokemon = new();
+        PokemonCard loserPokemon = new();
+        int winnerHPLeft = 0;
+        
+        if (_player1.HP == 0)
+        {
+            winner = _player2;
+            loser = _player1;
+            winnerPokemon = _player2.Pokemon;
+            loserPokemon = _player1.Pokemon;
+
+            winnerHPLeft = _player2.HP;
+        }
+        else
+        {
+            winner = _player1;
+            loser = _player2;
+            
+            winnerPokemon = _player1.Pokemon;
+            loserPokemon = _player2.Pokemon;
+
+            winnerHPLeft = _player1.HP;
+        }
+        
+        BattleLog log = new BattleLog
+        {
+            Id = Guid.NewGuid(),
+            WinnerName = winner.Name,
+            LoserName = loser.Name,
+            WinningPokemon = winnerPokemon,
+            LosingPokemon = loserPokemon,
+            WinnerHPLeft = winnerHPLeft,
+            BattleDate = DateTime.Now
+        };
+
+        await RedisRepository.StoreBattleLogAsync(log);
+        BattleState.ShouldReLoadLogs = true;
+        
+        Navigation.NavigateTo("/logs");
+    }
+    
+    private string GetPokemonAnimationClass(Player player)
+    {
+        if (player == _player1 && _player1Attacking)
+            return "pokemon-attack";
+        if (player == _player2 && _player2Attacking)
+            return "pokemon-attack";
+        return "";
+    }
+    
+    private int CalculateDamage(MoveCard performedMove)
+    {
+        var damage = 0;
+        double multiplier = 0;
+        PokemonCard defender = new PokemonCard();
+        
+        if (_currentPlayer.Id == 1)
+        {
+            defender = _player2.Pokemon;
+        }
+        else
+        {
+            defender = _player1.Pokemon;
+        }
+
+        List<string> defenderTypes = new();
+        defenderTypes = defender.Type.Split("/").ToList();
+
+        if (defenderTypes != null && defenderTypes.Any())
+        {
+            var attackType = PokemonTypeAgent.GetTypeFromString(performedMove.Element);
+            var defendType1 = PokemonTypeAgent.GetTypeFromString(defenderTypes[0]);
+        
+            if (defenderTypes.Count == 1)
+            {
+                multiplier = PokemonTypeAgent.CalculateTotalEffectiveness(attackType, defendType1);
+            }
+            else
+            {
+                var defendType2 = PokemonTypeAgent.GetTypeFromString(defenderTypes[1]);
+                multiplier = PokemonTypeAgent.CalculateTotalEffectiveness(attackType, defendType1, defendType2);
+            }
+        }
+
+        damage = Convert.ToInt32((performedMove.Power / 5) * multiplier); //not accurate to the game, but fine
+
+        
+        return damage;
+    }
+    
+    private string GetDamageMessage(MoveCard performedMove)
+    {
+        var message = "";
+        float multiplier = 0;
+        PokemonCard defender = new PokemonCard();
+        
+        if (_currentPlayer.Id == 1)
+        {
+            defender = _player2.Pokemon;
+        }
+        else
+        {
+            defender = _player1.Pokemon;
+        }
+
+        List<string> defenderTypes = new();
+        defenderTypes = defender.Type.Split("/").ToList();
+
+        if (defenderTypes != null && defenderTypes.Any())
+        {
+            var attackType = PokemonTypeAgent.GetTypeFromString(performedMove.Element);
+            var defendType1 = PokemonTypeAgent.GetTypeFromString(defenderTypes[0]);
+        
+            if (defenderTypes.Count == 1)
+            {
+                multiplier = PokemonTypeAgent.CalculateTotalEffectiveness(attackType, defendType1);
+            }
+            else
+            {
+                var defendType2 = PokemonTypeAgent.GetTypeFromString(defenderTypes[1]);
+                multiplier = PokemonTypeAgent.CalculateTotalEffectiveness(attackType, defendType1, defendType2);
+            }
+        }
+
+        message = PokemonTypeAgent.GetEffectivenessMessage(multiplier);
+
+        return message;
+    }
+}

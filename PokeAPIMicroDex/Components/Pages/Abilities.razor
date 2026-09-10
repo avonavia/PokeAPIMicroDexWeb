@@ -33,10 +33,11 @@
 @code {
     private int _loadedCount;
 
-    protected override async Task OnInitializedAsync()
+    protected override Task OnInitializedAsync()
     {
         _loadedCount = PokemonInfo.AbilityList.Count;
-        await LoadAbilitiesAsync();
+        _ = LoadAbilitiesAsync();
+        return Task.CompletedTask;
     }
 
     private async Task LoadAbilitiesAsync()

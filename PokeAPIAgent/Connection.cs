@@ -15,6 +15,7 @@ public class Connection
     public List<PokemonCard> PokemonList = new();
     public List<AbilityCard> AbilityList = new();
     public List<MoveCard> MoveList = new();
+    public List<BattleLog> BattleLogList = new();
     public readonly int TotalCount = 151;
     public readonly int TotalCountAb = 307;
     public readonly int TotalCountMove = 165;

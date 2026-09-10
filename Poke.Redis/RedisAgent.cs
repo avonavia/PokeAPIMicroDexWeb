@@ -31,6 +31,28 @@ public class RedisAgent
         }
         return null;
     }
+    
+    public List<RedisKey>? GetKeys()
+    {
+        if (_connection.Value != null && _connection.Value.IsConnected)
+        {
+            try
+            {
+                var db = GetDatabase();
+                
+                var endpoints = db.Multiplexer.GetEndPoints();
+                var server = db.Multiplexer.GetServer(endpoints[0]);
+                var keys = server.Keys();
+                
+                return keys.ToList();
+            }
+            catch
+            {
+                // ignored
+            }
+        }
+        return null;
+    }
 
     public async ValueTask DisposeAsync()
     {

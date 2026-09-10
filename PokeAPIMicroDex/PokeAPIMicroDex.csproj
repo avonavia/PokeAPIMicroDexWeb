@@ -27,4 +27,9 @@
       <Link>.dockerignore</Link>
     </Content>
   </ItemGroup>
+
+
+  <ItemGroup>
+    <None Include="wwwroot\battlebackground.jpg" />
+  </ItemGroup>
 </Project>
